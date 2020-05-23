@@ -8,11 +8,11 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Query
 
-interface CurrencyApiService {
+interface ExchangeRateService {
     @GET("live")
     fun getCurrencyInfo(
         @Query("access_key") accessKey: String
-    ): Call<CurrencyResponse>
+    ): Call<ExchangeRateApiResponse>
 
     companion object {
         val baseUrl = "http://api.currencylayer.com/"
