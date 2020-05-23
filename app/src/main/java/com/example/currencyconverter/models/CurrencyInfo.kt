@@ -1,7 +1,7 @@
 package com.example.currencyconverter.models
 
-data class CurrencyInfo (val type: CurrencyType, val name: String) {
-    enum class CurrencyType {
+data class CurrencyInfo (val type: CurrencyCode, val name: String) {
+    enum class CurrencyCode {
         KRW,
         JPY,
         PHP
@@ -9,8 +9,8 @@ data class CurrencyInfo (val type: CurrencyType, val name: String) {
 
     override fun toString(): String {
         return when(type) {
-            CurrencyType.KRW -> "한국(KRW)"
-            CurrencyType.JPY -> "일본(KRW)"
+            CurrencyCode.KRW -> "한국(KRW)"
+            CurrencyCode.JPY -> "일본(KRW)"
             else -> "필리핀(PHP)"
         }
     }

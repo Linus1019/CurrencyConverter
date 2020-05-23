@@ -1,23 +1,29 @@
 package com.example.currencyconverter.viewModels
 
-import androidx.lifecycle.*
-import com.example.currencyconverter.apiServices.ExchangeRateService
+import androidx.lifecycle.MediatorLiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.currencyconverter.apiServices.ExchangeRateApiResponse
+import com.example.currencyconverter.apiServices.ExchangeRateService
 import com.example.currencyconverter.models.CurrencyInfo
 import com.example.currencyconverter.models.ExchangeRateInfo
-import kotlinx.coroutines.*
+import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.round
 
 class MainViewModel: ViewModel() {
     val loadFailMessage = MutableLiveData<String>()
-    val selectedReceiveCurrency = MutableLiveData<CurrencyInfo>()
-    val currencyValue = MediatorLiveData<Double>()
+    val selectedCurrency = MutableLiveData<CurrencyInfo>()
+    val toCurrency = MediatorLiveData<Double>()
     val timestamp = MutableLiveData<String>()
     val exchangeRateInfo = MutableLiveData<ExchangeRateInfo>()
+    val amount = MutableLiveData<String>().apply { value = "0.00" }
 
     init {
         viewModelScope.launch {
@@ -35,7 +41,7 @@ class MainViewModel: ViewModel() {
                         timestamp.value = SimpleDateFormat("yyyy-MM-dd hh:mm:ss", Locale.getDefault())
                             .format(Date(response.timestamp.toLong()))
 
-                        selectedReceiveCurrency.value = CurrencyInfo(CurrencyInfo.CurrencyType.KRW, "KRW")
+                        selectedCurrency.value = CurrencyInfo(CurrencyInfo.CurrencyCode.KRW, "KRW")
                     }
 
                     override fun onFailure(call: Call<ExchangeRateApiResponse>, t: Throwable) {
@@ -43,13 +49,25 @@ class MainViewModel: ViewModel() {
                     }
                 })
 
-            currencyValue.addSource(selectedReceiveCurrency) { info ->
-                currencyValue.value = when(info.type) {
-                    CurrencyInfo.CurrencyType.KRW -> exchangeRateInfo.value!!.currencyKRW
-                    CurrencyInfo.CurrencyType.JPY -> exchangeRateInfo.value!!.currencyJPY
+            toCurrency.addSource(selectedCurrency) { info ->
+                toCurrency.value = round(when(info.type) {
+                    CurrencyInfo.CurrencyCode.KRW -> exchangeRateInfo.value!!.currencyKRW
+                    CurrencyInfo.CurrencyCode.JPY -> exchangeRateInfo.value!!.currencyJPY
                     else -> exchangeRateInfo.value!!.currencyPHP
-                }
+                } * 100) / 100
             }
         }
+    }
+
+    fun onTransferValueChanged(transferValue: CharSequence) {
+        if (transferValue.isNullOrEmpty()) {
+            amount.value = "0.00"
+            return
+        }
+
+        val transferFormatter = DecimalFormat("###,###,##0.00")
+            .format(transferValue.toString().toDouble() * toCurrency.value!!)
+
+        amount.value = transferFormatter
     }
 }

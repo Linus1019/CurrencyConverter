@@ -13,10 +13,10 @@ import com.example.currencyconverter.views.adapters.CurrecyListAdapter
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
-    private val receiveCurrencies = listOf(
-        CurrencyInfo(CurrencyInfo.CurrencyType.KRW, "KRW"),
-        CurrencyInfo(CurrencyInfo.CurrencyType.JPY, "JPY" ),
-        CurrencyInfo(CurrencyInfo.CurrencyType.PHP, "PHP")
+    private val toCurrencies = listOf(
+        CurrencyInfo(CurrencyInfo.CurrencyCode.KRW, "KRW"),
+        CurrencyInfo(CurrencyInfo.CurrencyCode.JPY, "JPY" ),
+        CurrencyInfo(CurrencyInfo.CurrencyCode.PHP, "PHP")
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,10 +37,10 @@ class MainActivity : AppCompatActivity() {
         })
 
         receive_currency_list_view.adapter =
-            CurrecyListAdapter(this, receiveCurrencies)
+            CurrecyListAdapter(this, toCurrencies)
 
         receive_currency_list_view.setOnItemClickListener { _, _, position, _ ->
-            viewModel.selectedReceiveCurrency.value = receiveCurrencies[position]
+            viewModel.selectedCurrency.value = toCurrencies[position]
         }
     }
 }
