@@ -1,6 +1,6 @@
 package com.example.currencyconverter.models
 
-data class CurrencyInfo (val type: CurrencyType, val currencyName: String) {
+data class CurrencyInfo (val type: CurrencyType, val name: String) {
     enum class CurrencyType {
         KRW,
         JPY,
