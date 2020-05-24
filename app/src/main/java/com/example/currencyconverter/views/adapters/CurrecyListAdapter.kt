@@ -7,23 +7,23 @@ import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.TextView
 import com.example.currencyconverter.R
-import com.example.currencyconverter.models.CurrencyInfo
+import com.example.currencyconverter.models.Currency
 
 class CurrecyListAdapter(
     private val context: Context,
-    private val toCurrencies: List<CurrencyInfo>
+    private val currencies: List<Currency>
 ) : BaseAdapter() {
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
         val view = convertView ?:
         LayoutInflater.from(context).inflate(R.layout.currency_item, null) as View
 
         view.findViewById<TextView>(R.id.currency_text).text =
-            toCurrencies[position].toString()
+            currencies[position].toString()
         return view
     }
 
     override fun getItemId(position: Int): Long = position.toLong()
-    override fun getCount() = toCurrencies.size
-    override fun getItem(position: Int) = toCurrencies[position]
+    override fun getCount() = currencies.size
+    override fun getItem(position: Int) = currencies[position]
 
 }
