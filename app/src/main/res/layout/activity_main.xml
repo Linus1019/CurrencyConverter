@@ -75,7 +75,7 @@
                     android:text="송금액 : " />
 
                 <EditText
-                    android:id="@+id/edit_text"
+                    android:id="@+id/transfer_text"
                     android:layout_width="140dp"
                     android:layout_height="wrap_content"
                     android:inputType="number"

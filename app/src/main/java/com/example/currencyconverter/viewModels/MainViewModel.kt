@@ -14,7 +14,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class MainViewModel: ViewModel() {
-    private val currencyParrencn = "###,###,##0.00"
+    private val currencyPattern = "###,###,##0.00"
 
     enum class ErrorCode {
         NONE,
@@ -34,7 +34,7 @@ class MainViewModel: ViewModel() {
             MutableLiveData<String>().apply {
                 value = when {
                     t.isEmpty() || errorCode.value == ErrorCode.AMOUNT_ERROR -> "0.00"
-                    else -> DecimalFormat(currencyParrencn).format(t.toDouble() * c.value)
+                    else -> DecimalFormat(currencyPattern).format(t.toDouble() * c.value)
                 }
             }
         }
@@ -42,7 +42,7 @@ class MainViewModel: ViewModel() {
 
     init {
         currency.addSource(selectedCurrency) { _ ->
-            currency.value = DecimalFormat(currencyParrencn)
+            currency.value = DecimalFormat(currencyPattern)
                 .format(selectedCurrency.value?.value ?: 0)
         }
 
@@ -60,7 +60,7 @@ class MainViewModel: ViewModel() {
                         exchangeRateInfo.value = response!!.exchangeRateInfo
                         timestamp.value =
                             SimpleDateFormat("yyyy-MM-dd hh:mm:ss", Locale.getDefault())
-                                .format(Date(response.timestamp.toLong()))
+                                .format(Date(response.timestamp.toLong() * 1000))
                     }
 
                     override fun onFailure(call: Call<ExchangeRateApiResponse>, t: Throwable) {

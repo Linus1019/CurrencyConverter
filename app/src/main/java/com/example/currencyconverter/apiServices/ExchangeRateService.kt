@@ -16,7 +16,7 @@ interface ExchangeRateService {
 
     companion object {
         val baseUrl = "http://api.currencylayer.com/"
-        val apiKey = "353b95bbbef0e4ae425634495d20a666"
+        val apiKey = "36b906320ae5e44f1d7207b39a583486"
         private val httpClient = OkHttpClient()
             .newBuilder()
             .addInterceptor(HttpLoggingInterceptor())

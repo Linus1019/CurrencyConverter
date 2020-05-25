@@ -45,16 +45,14 @@ class MainActivity : AppCompatActivity() {
             viewModel.selectedCurrency.value = allCurrencies[position]
         }
 
-        edit_text.requestFocus()
-        edit_text.setSelection(0)
+        transfer_text.requestFocus()
+        transfer_text.setSelection(0)
 
         viewModel.errorCode.observe(this, Observer { errorCode ->
-            when (errorCode) {
-                MainViewModel.ErrorCode.NONE -> { viewModel.transferValue.value = "0" }
-                MainViewModel.ErrorCode.API_ERROR ->
-                    showAlertDialog("통신중 장애가 발생하였습니다.")
-                else ->
-                    showAlertDialog("송금액이 바르지 않습니다.")
+            if (errorCode == MainViewModel.ErrorCode.API_ERROR) {
+                showAlertDialog("통신중 장애가 발생하였습니다.")
+            } else {
+                showAlertDialog("송금액이 바르지 않습니다.")
             }
         })
 
@@ -64,22 +62,26 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        edit_text.addTextChangedListener(object: TextWatcher {
+        transfer_text.addTextChangedListener(object: TextWatcher {
             override fun afterTextChanged(s: Editable?) {}
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                val transferValue = viewModel.transferValue.value?.toDouble() ?: 0.0
+                if (s.isNullOrEmpty()) {
+                    return
+                }
+
+                val transferValue = s.toString().toDouble()
                 if (transferValue < 0 || transferValue > 10000) {
                     viewModel.errorCode.value = MainViewModel.ErrorCode.INPUT_ERROR
                 }
             }
         })
 
-        edit_text.setOnKeyListener { _, keyCode, _ ->
+        transfer_text.setOnKeyListener { _, keyCode, _ ->
             if (keyCode == KeyEvent.KEYCODE_ENTER) {
                 val inputMethodManager =
                     getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
-                inputMethodManager.hideSoftInputFromWindow(edit_text.windowToken, 0)
+                inputMethodManager.hideSoftInputFromWindow(transfer_text.windowToken, 0)
             }
             false
         }
@@ -91,5 +93,7 @@ class MainActivity : AppCompatActivity() {
             .setPositiveButton("확인") { dialog, _ ->
                 viewModel.errorCode.value = MainViewModel.ErrorCode.NONE
                 dialog.dismiss()
-            }.show()
+            }
+            .setOnDismissListener { viewModel.transferValue.value = "0" }
+            .show()
 }
