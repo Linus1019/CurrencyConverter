@@ -1,7 +1,12 @@
 package com.example.currencyconverter
 
+import android.app.Activity
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
+import android.view.KeyEvent
+import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AlertDialog
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
@@ -28,7 +33,7 @@ class MainActivity : AppCompatActivity() {
         viewModel.exchangeRateInfo.observe(this, Observer { info ->
             allCurrencies = listOf(
                 Currency(Currency.Code.KRW, "KRW", info.currencyKRW),
-                Currency(Currency.Code.JPY, "JPY", info.currencyKRW),
+                Currency(Currency.Code.JPY, "JPY", info.currencyJPY),
                 Currency(Currency.Code.PHP, "PHP", info.currencyPHP)
             )
 
@@ -43,37 +48,48 @@ class MainActivity : AppCompatActivity() {
         edit_text.requestFocus()
         edit_text.setSelection(0)
 
-
-        val unavailableAmountFunc = { -> viewModel.transferValue.value = "0" }
-
-        viewModel.transferValue.observe(this, Observer { transferValue ->
-            if (transferValue.isEmpty().not() &&
-                transferValue.toDouble() > 10000) {
-                showAlertDialog("송금액이 바르지 않습니다.", unavailableAmountFunc)
-            }
-        })
-
         viewModel.errorCode.observe(this, Observer { errorCode ->
             when (errorCode) {
+                MainViewModel.ErrorCode.NONE -> { viewModel.transferValue.value = "0" }
                 MainViewModel.ErrorCode.API_ERROR ->
-                    showAlertDialog(viewModel.errorMessage.value ?: "", {})
+                    showAlertDialog("통신중 장애가 발생하였습니다.")
                 else ->
-                    showAlertDialog("송금액이 바르지 않습니다.", unavailableAmountFunc)
+                    showAlertDialog("송금액이 바르지 않습니다.")
             }
         })
 
         viewModel.amount.observe(this, Observer {
-            if (it.isNotEmpty() && it.replace(",", "").toDouble() < 0) {
-                showAlertDialog("송금액이 바르지 않습니다.", unavailableAmountFunc)
+            if (it.isEmpty()) {
+                showAlertDialog("송금액이 바르지 않습니다.")
             }
         })
+
+        edit_text.addTextChangedListener(object: TextWatcher {
+            override fun afterTextChanged(s: Editable?) {}
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                val transferValue = viewModel.transferValue.value?.toDouble() ?: 0.0
+                if (transferValue < 0 || transferValue > 10000) {
+                    viewModel.errorCode.value = MainViewModel.ErrorCode.INPUT_ERROR
+                }
+            }
+        })
+
+        edit_text.setOnKeyListener { _, keyCode, _ ->
+            if (keyCode == KeyEvent.KEYCODE_ENTER) {
+                val inputMethodManager =
+                    getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+                inputMethodManager.hideSoftInputFromWindow(edit_text.windowToken, 0)
+            }
+            false
+        }
     }
 
-    private fun showAlertDialog(message: String, func: () -> Unit) =
+    private fun showAlertDialog(message: String) =
         AlertDialog.Builder(this)
             .setMessage(message)
             .setPositiveButton("확인") { dialog, _ ->
-                func()
+                viewModel.errorCode.value = MainViewModel.ErrorCode.NONE
                 dialog.dismiss()
             }.show()
 }

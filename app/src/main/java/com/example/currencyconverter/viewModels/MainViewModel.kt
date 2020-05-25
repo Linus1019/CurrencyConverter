@@ -17,6 +17,8 @@ class MainViewModel: ViewModel() {
     private val currencyParrencn = "###,###,##0.00"
 
     enum class ErrorCode {
+        NONE,
+        INPUT_ERROR,
         AMOUNT_ERROR,
         API_ERROR
     }
@@ -30,19 +32,16 @@ class MainViewModel: ViewModel() {
     val amount = Transformations.switchMap(transferValue) { t ->
         Transformations.switchMap(selectedCurrency) { c ->
             MutableLiveData<String>().apply {
-                value = if (t.isEmpty()) {
-                    errorCode.value = ErrorCode.AMOUNT_ERROR
-                    "0.00"
-                } else {
-                    DecimalFormat(currencyParrencn).format(t.toDouble() * c.value)
+                value = when {
+                    t.isEmpty() || errorCode.value == ErrorCode.AMOUNT_ERROR -> "0.00"
+                    else -> DecimalFormat(currencyParrencn).format(t.toDouble() * c.value)
                 }
-
             }
         }
     }
 
     init {
-        currency.addSource(selectedCurrency) { c ->
+        currency.addSource(selectedCurrency) { _ ->
             currency.value = DecimalFormat(currencyParrencn)
                 .format(selectedCurrency.value?.value ?: 0)
         }
