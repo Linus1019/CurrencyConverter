@@ -7,10 +7,13 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.Observer
 import com.example.currencyconverter.models.Currency
+import com.example.currencyconverter.models.ExchangeRateInfo
 import com.example.currencyconverter.viewModels.MainViewModel
 import junit.framework.TestCase.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -18,6 +21,7 @@ import org.junit.rules.TestRule
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
+import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.MockitoAnnotations
@@ -42,22 +46,24 @@ class ViewModelUnitTest {
 
     @Test
     fun mainViewModelTest() {
+        //api 호출이 완료되는 것을 잠시 기다림
+        Thread.sleep(1000)
+
         //API 호출에 성공해서 환율정보 불러오기 성공
         assertNotNull(mainViewModel.exchangeRateInfo.value)
 
-        val observer = mock(Observer::class.java) as Observer<String>
-        mainViewModel.transferValue.observeForever(observer)
-
-        mainViewModel.transferValue.value = "-1"
+        val transferObserver = mock(Observer::class.java) as Observer<String>
+        mainViewModel.transferValue.observeForever(transferObserver)
 
         val currencyObserver = mock(Observer::class.java) as Observer<Currency>
         mainViewModel.selectedCurrency.observeForever(currencyObserver)
 
+        //송금액의 총합계가 0보다 작은경우 INPUT_ERROR 코드가 설정 (UI 이벤트에 의해 변경)
+        mainViewModel.transferValue.value = "-1"
         mainViewModel.selectedCurrency.value = Currency(Currency.Code.JPY, "JPY", 20.0)
+        assertEquals(mainViewModel.errorCode.value, MainViewModel.ErrorCode.INPUT_ERROR)
 
-        //송금액의 총합계가 0보다 작은경우 AMOUNT_ERROR 코드가 설정
-        assertEquals(mainViewModel.errorCode.value, MainViewModel.ErrorCode.AMOUNT_ERROR)
-
+        mainViewModel.errorCode.value = MainViewModel.ErrorCode.NONE
         mainViewModel.transferValue.value = "1"
         mainViewModel.selectedCurrency.value =
             Currency(
@@ -75,8 +81,8 @@ class ViewModelUnitTest {
 
         //수취금액 = 송금액 * 환율
         assertEquals(mainViewModel.amount.value!!,
-                DecimalFormat(pattern).format(mainViewModel.selectedCurrency.value!!.value *
-                        mainViewModel.transferValue.value!!.toDouble())
+            DecimalFormat(pattern).format(mainViewModel.selectedCurrency.value!!.value *
+                    mainViewModel.transferValue.value!!.toDouble())
         )
     }
 }

@@ -11,7 +11,7 @@ import retrofit2.http.Query
 interface ExchangeRateService {
     @GET("live")
     fun getCurrencyInfo(
-        @Query("access_key") accessKey: String
+        @Query("access_key") accessKey: String = apiKey
     ): Call<ExchangeRateApiResponse>
 
     companion object {
