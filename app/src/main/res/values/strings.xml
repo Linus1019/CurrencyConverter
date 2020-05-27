@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">CurrencyConverter</string>
+    <string name="timestamp">조회시간 : %s</string>
+    <string name="to_currency_country">수취 국가 : %s</string>
+    <string name="to_currency_value">환율 : %s %s/USD</string>
+    <string name="amount_text">수취금액은 %s %s입니다.</string>
 </resources>
